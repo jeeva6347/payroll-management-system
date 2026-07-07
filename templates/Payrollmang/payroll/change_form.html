@@ -1,0 +1,221 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block submit_buttons_bottom %}{% endblock %}
+{% block field_sets %}
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+<div class="row">
+    <div class="col-12 col-lg-9 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+
+
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="row align-items-center">
+                            <label class="col-2 col-form-label">Employee <span class="text-danger">*</span></label>
+                            <div class="col-sm-7 px-sm-5">
+                                {{ adminform.form.employee }}
+                                {{ adminform.form.employee.errors }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="cols-12 mb-3">
+                    <div class="col-md-6">
+                        <div class="row align-items-center">
+                            <label class="col-sm-5 col-form-label">
+                                Payroll Month <span class="text-danger">*</span>
+                            </label>
+
+                            <div class="col-sm-7">
+                                {{ adminform.form.payroll_month }}
+                                {{ adminform.form.payroll_month.errors }}
+                            </div>
+                        </div>
+                    </div> 
+                </div>
+                <div id="monthly-section">
+                <div class="row mb-3">
+                    <div class="col-12 col-md-6 mb-3 mb-md-0">
+                        <div class="row align-items-center">
+                            <label class="col-12 col-sm-5 col-form-label">Basic Salary <span
+                                    class="text-danger">*</span></label>
+                            <div class="col-12 col-sm-7">
+                                {{ adminform.form.basic_salary }}
+                                {{ adminform.form.basic_salary.errors }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="row align-items-center">
+                            <label class="col-12 col-sm-5 col-form-label">PF</label>
+                            <div class="col-12 col-sm-7">{{ adminform.form.pf }}</div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="row mb-3">
+                    <div class="col-12 col-md-6 mb-3 mb-md-0">
+                        <div class="row align-items-center">
+                            <label class="col-12 col-sm-5 col-form-label">House Allowance</label>
+                            <div class="col-12 col-sm-7">{{ adminform.form.house_allowance }}</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="row align-items-center">
+                            <label class="col-12 col-sm-5 col-form-label">Advance</label>
+                            <div class="col-12 col-sm-7">{{ adminform.form.advance }}</div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="row mb-3">
+                    <div class="col-12 col-md-6 mb-3 mb-md-0">
+                        <div class="row align-items-center">
+                            <label class="col-12 col-sm-5 col-form-label">DA Allowance</label>
+                            <div class="col-12 col-sm-7">{{ adminform.form.da_allowance }}</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="row align-items-center">
+                            <label class="col-12 col-sm-5 col-form-label">Loan</label>
+                            <div class="col-12 col-sm-7">{{ adminform.form.loan }}</div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="row mb-3">
+                    <div class="col-12 col-md-6 mb-3 mb-md-0">
+                        <div class="row align-items-center">
+                            <label class="col-12 col-sm-5 col-form-label">Other Allowance</label>
+                            <div class="col-12 col-sm-7">{{ adminform.form.other_allowance }}</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="row align-items-center">
+                            <label class="col-12 col-sm-5 col-form-label">Working Days <span
+                                    class="text-danger">*</span></label>
+                            <div class="col-12 col-sm-7">
+                                {{ adminform.form.working_days }}
+                                {{ adminform.form.working_days.errors }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="row mb-3">
+                    <div class="col-12 col-md-6 mb-3 mb-md-0">
+                        <div class="row align-items-center">
+                            <label class="col-12 col-sm-5 col-form-label">OT Amount</label>
+                            <div class="col-12 col-sm-7">{{ adminform.form.ot_amount }}</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="row align-items-center flex-nowrap g-2">
+
+
+                            <label class="col-5 col-sm-5 col-form-label text-nowrap">
+                                Absent Days <span class="text-danger">*</span>
+                            </label>
+
+
+                            <div class="col-3 col-sm-3">
+                                {{ adminform.form.absent_days }}
+                                {{ adminform.form.absent_days.errors }}
+                            </div>
+
+                            <div class="col-2 px-0">
+                                <input type="text" id="id_absent_amount" class=" fw-bold" value="0.00" readonly
+                                    style="background:#f8d7da;color:#721c24;; max-width: 101px; border-radius: 3px;">
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-12 col-md-6">
+                        <div class="row align-items-center">
+                            <label class="col-12 col-sm-5 col-form-label fw-bold">Total Salary</label>
+                            <div class="col-12 col-sm-6">
+                                <input type="text" id="id_gross_salary" class="form-control fw-bold" value="0.00"
+                                    readonly style="background: #d4edda; color: #155724;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="row align-items-center">
+                            <label class="col-12 col-sm-5 col-form-label fw-bold">Total Deduction</label>
+                            <div class="col-12 col-sm-6">
+                                <input type="text" id="id_total_deduction" class="form-control fw-bold" value="0.00"
+                                    readonly style="background: #f8d7da; color: #721c24;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-12 col-md-6">
+                        <div class="row align-items-center">
+                            <label class="col-12 col-sm-5 col-form-label fw-bold">Net Salary</label>
+                            <div class="col-12 col-sm-6">
+                                <input type="text" id="id_net_salary" class="form-control fw-bold" value="0.00" readonly
+                                    style="background: #cfe2ff; color: #084298; border:2px solid #0d6efd;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-3 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">{% trans "Actions" %}</h5>
+            </div>
+            <div class="card-body p-2">
+
+                <button type="submit" name="_save" class="btn btn-sm btn-success w-100 mb-2">
+                    {% trans "Save" %}
+                </button>
+
+                <button type="submit" name="_addanother" class="btn btn-sm btn-info w-100 mb-2">
+                    {% trans "Save and add another" %}
+                </button>
+
+                <button type="submit" name="_continue" class="btn btn-sm btn-info w-100 mb-2">
+                    {% trans "Save and continue editing" %}
+                </button>
+
+                {% if original %}
+                <a href="{% url opts|admin_urlname:'delete' original.pk|admin_urlquote %}"
+                    class="btn btn-sm btn-danger w-100 mb-2">
+                    {% trans "Delete" %}
+                </a>
+
+                <a href="{% url opts|admin_urlname:'history' original.pk|admin_urlquote %}"
+                    class="btn btn-sm btn-secondary w-100 mb-2">
+                    {% trans "History" %}
+                </a>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+
+{% endblock %}

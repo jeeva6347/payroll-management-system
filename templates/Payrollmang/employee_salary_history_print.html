@@ -1,0 +1,241 @@
+{% load indian_currency %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employee Salary Report</title>
+
+    <style>
+        
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 8mm;
+    }
+
+    .actions {
+        display: none !important;
+    }
+
+    .page {
+        width: 190mm;
+        max-width: 190mm;
+        padding: 0;
+        margin: auto;
+    }
+
+    body {
+        margin: 0;
+        zoom: 95%;
+    }
+}
+        .page {
+    width: 100%;
+    max-width: 1200px;
+    margin: auto;
+    padding: 30px;
+    box-sizing: border-box;
+}
+
+        .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid #15803d;
+            padding-bottom: 12px;
+            margin-bottom: 18px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 28px;
+            font-family: Georgia, serif;
+        }
+
+        .subtitle {
+            margin-top: 4px;
+            font-size: 15px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border-radius: 7px;
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .print-btn {
+            background: #15803d;
+            color: white;
+            border: none;
+        }
+
+        .back-btn {
+            background: white;
+            color: #15803d;
+            border: 1px solid #15803d;
+        }
+
+        .info-box {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 18px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px 35px;
+            margin-bottom: 20px;
+        }
+
+        .label {
+            color: #64748b;
+            font-size: 11px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .value {
+            color: #000;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th {
+            background: #0f172a;
+            color: white;
+            text-align: left;
+            padding: 10px;
+        }
+
+        td {
+            padding: 9px 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .net {
+            font-weight: 800;
+        }
+
+        .total-row td {
+            background: #ecfdf5;
+            color: #047857;
+            font-weight: 800;
+        }
+
+        @media print {
+            .actions {
+                display: none !important;
+            }
+
+            body {
+                margin: 0;
+                zoom: 95%;
+            }
+
+            .page {
+                width: 100%;
+                min-height: auto;
+                padding: 0;
+            }
+        }
+        
+    </style>
+</head>
+
+<body>
+
+<div class="page">
+
+    <div class="top">
+        <div>
+            <h1> GLOBAL ELECTRICAL TECH</h1>
+            <div class="subtitle">Employee Salary Report</div>
+        </div>
+
+        <div class="actions">
+            <button onclick="window.print()" class="btn print-btn">Print Report</button>
+           
+        </div>
+    </div>
+
+    <div class="info-box">
+        <div>
+            <div class="label">Employee Name</div>
+            <div class="value">{{ employee.Firstname }}</div>
+        </div>
+
+        <div>
+            <div class="label">Employee Code</div>
+            <div class="value">{{ employee.employee_code }}</div>
+        </div>
+
+        <div>
+            <div class="label">Phone</div>
+            <div class="value">{{ employee.phone }}</div>
+        </div>
+
+        <div>
+            <div class="label">Email</div>
+            <div class="value">{{ employee.email }}</div>
+        </div>
+
+        <div>
+            <div class="label">Department</div>
+            <div class="value">{{ employee.department }}</div>
+        </div>
+
+        <div>
+            <div class="label">Position</div>
+            <div class="value">{{ employee.position }}</div>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Month</th>
+                <th>Basic Salary</th>
+                <th>Total Salary</th>
+                <th>Total Deduction</th>
+                <th>Net Salary</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for payroll in payrolls %}
+            <tr>
+                <td>{{ payroll.payroll_month|date:"F Y" }}</td>
+                <td>{{ payroll.basic_salary|indian_currency }}</td>
+                <td>{{ payroll.total_salary|indian_currency }}</td>
+                <td>{{ payroll.total_deduction|indian_currency }}</td>
+                <td class="net">{{ payroll.net_salary|indian_currency }}</td>
+            </tr>
+            {% endfor %}
+
+            <tr class="total-row">
+                <td>Total</td>
+                <td>{{ total_basic|indian_currency }}</td>
+                <td>{{ total_salary|indian_currency }}</td>
+                <td>{{ total_deduction|indian_currency }}</td>
+                <td>{{ total_net|indian_currency }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,8 @@
+div.help,
+p.help,
+span.help,
+div.helptext,
+p.helptext,
+span.helptext {
+    display: none !important;
+}

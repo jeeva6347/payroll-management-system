@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Weekly Salary Slip</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #fff;
+            padding: 20px;
+        }
+
+        .wrapper {
+            width: 700px;
+            margin: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #000;
+        }
+
+        td, th {
+            border: 1px solid #000;
+            padding: 6px 8px;
+            font-size: 13px;
+            color: #000;
+            vertical-align: middle;
+        }
+
+        .company-title {
+            font-size: 22px;
+            font-weight: bold;
+            text-align: center;
+            border-bottom: none !important;
+            padding: 8px 0 2px;
+        }
+
+        .company-addr {
+            font-size: 11px;
+            text-align: center;
+            border-top: none !important;
+            padding: 0 0 8px;
+        }
+
+        .slip-title {
+            text-align: center;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .section-head {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .col-head {
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .amt {
+            text-align: right;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+
+        .blank-row td {
+            height: 35px;
+        }
+
+        .net-row td {
+            font-weight: bold;
+        }
+
+        .print-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 8px 25px;
+            background: #0d6efd;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .signature {
+            width: 700px;
+            margin: 80px auto 0;
+            text-align: center;
+            padding-left: 500px;
+            font-size: 13px;
+        }
+
+        @media print {
+            .print-btn {
+                display: none;
+            }
+
+            body {
+                padding: 0;
+            }
+
+            .wrapper {
+                width: 95%;
+                max-width: 1000px;
+                margin-top: 100px;
+            }
+
+            td, th {
+                padding: 12px 9px;
+            }
+
+            .signature {
+                width: 700px;
+                margin: 80px auto 0;
+                text-align: center;
+                padding-left: 500px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="wrapper">
+        <table>
+            <tr>
+                <td colspan="4" class="company-title">
+                    GLOBAL ELECTRICAL TECH
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="4" class="company-addr">
+                    (No.69, Priyanka Nagar, Pattunoolchatram,
+                    Sriperumbudur, Kanchipuram Dt, TN.)
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="4" class="slip-title">
+                    WEEKLY PAY SLIP
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="2">
+                    <b>Employee Name :</b>
+                    {{ weekly_payroll.employee.Firstname|upper }}
+                    {{ weekly_payroll.employee.Lastname|upper }}
+                </td>
+
+                <td colspan="2">
+                    <b>Emp. Code :</b>
+                    {{ weekly_payroll.employee.employee_code }}
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="2">
+                    <b>Designation :</b>
+                    {{ weekly_payroll.employee.position }}
+                </td>
+
+                <td colspan="2">
+                    <b>Phone :</b>
+                    {{ weekly_payroll.employee.phone }}
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="2">
+                    <b>Department :</b>
+                    {{ weekly_payroll.employee.department }}
+                </td>
+
+                <td colspan="2">
+                    <b>Date Of Join :</b>
+                    {{ weekly_payroll.employee.date_of_join|date:"d-m-Y" }}
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="2">
+                    <b>Week Start :</b>
+                    {{ weekly_payroll.week_start|date:"d-m-Y" }}
+                </td>
+
+                <td colspan="2">
+                    <b>Week End :</b>
+                    {{ weekly_payroll.week_end|date:"d-m-Y" }}
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="2" class="section-head">
+                    Earnings
+                </td>
+
+                <td colspan="2" class="section-head">
+                    Deductions
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-head">Salary Head</td>
+                <td class="col-head">Amount</td>
+
+                <td class="col-head">Salary Head</td>
+                <td class="col-head">Amount</td>
+            </tr>
+
+            {% regroup weekly_payroll.items.all by type as grouped_items %}
+            {% for group in grouped_items %}
+                {% if group.grouper == "Earning" %}
+                    {% for item in group.list %}
+                        <tr>
+                            <td>{{ item.label }}</td>
+                            <td class="amt">₹ {{ item.amount|floatformat:2 }}</td>
+                            {% if forloop.counter == 1 %}
+                                {% with deductions=weekly_payroll.items.filter type="Deduction" %}
+                                    {% for deduction in deductions %}
+                                        {% if forloop.counter == forloop.parentloop.counter %}
+                                            <td>{{ deduction.label }}</td>
+                                            <td class="amt">₹ {{ deduction.amount|floatformat:2 }}</td>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endwith %}
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
+
+            <tr class="blank-row">
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+
+            <tr>
+                <td class="bold">
+                    TOTAL EARNINGS
+                </td>
+
+                <td class="amt bold">
+                    ₹ {{ weekly_payroll.total_earnings|floatformat:2 }}
+                </td>
+
+                <td class="bold">
+                    TOTAL DEDUCTIONS
+                </td>
+
+                <td class="amt bold">
+                    ₹ {{ weekly_payroll.total_deductions|floatformat:2 }}
+                </td>
+            </tr>
+
+            <tr class="net-row">
+                <td>Net Salary</td>
+
+                <td class="amt">
+                    ₹ {{ weekly_payroll.net_salary|floatformat:2 }}
+                </td>
+
+                <td></td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="signature">
+        Authorized By
+        <br><br><br><br>
+        <strong>GLOBAL ELECTRICAL TECH</strong>
+    </div>
+
+    <button class="print-btn" onclick="window.print()">
+        🖨️ Print
+    </button>
+
+</body>
+
+</html>
