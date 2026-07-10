@@ -1,0 +1,80 @@
+{% extends "admin/base_site.html" %}
+{% load indian_currency %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Weekly Salary History</h1>
+
+    <div>
+        <a href="../.." class="btn btn-secondary btn-sm">
+            ← Back to Employees
+        </a>
+    </div>
+</div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h2 class="h4 mb-2">{{ employee.Firstname }} {{ employee.Lastname }}</h2>
+
+            <div class="row row-cols-1 row-cols-md-3 g-3 mt-2">
+                <div class="col">
+                    <label class="form-label fw-bold">Employee Code</label>
+                    <div>{{ employee.employee_code }}</div>
+                </div>
+                <div class="col">
+                    <label class="form-label fw-bold">Employee Type</label>
+                    <div>{{ employee.employee_type }}</div>
+                </div>
+                <div class="col">
+                    <label class="form-label fw-bold">Phone</label>
+                    <div>{{ employee.phone }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Week-wise Salary Details</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Week</th>
+                            <th>Total Earnings</th>
+                            <th>Total Deductions</th>
+                            <th>Net Salary</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for wp in weekly_payrolls %}
+                        <tr>
+                            <td>{{ wp.week_display }}</td>
+                            <td>{{ wp.total_earnings|indian_currency }}</td>
+                            <td>{{ wp.total_deductions|indian_currency }}</td>
+                            <td class="text-success fw-bold">{{ wp.net_salary|indian_currency }}</td>
+                            <td><a href="{% url 'weekly_salary_slip' wp.id %}" target="_blank" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-print"></i> Print
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4">No weekly payroll found.</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="table-active fw-bold">
+                            <td>Total</td>
+                            <td>{{ total_earnings|indian_currency }}</td>
+                            <td>{{ total_deductions|indian_currency }}</td>
+                            <td>{{ total_net|indian_currency }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -9,12 +9,20 @@ from django.utils import timezone
 
 class Department(models.Model):
     department_name=models.CharField(max_length=100)
+    class Meta:
+        verbose_name = "Department"
+        verbose_name_plural = "Departments"
+
     def __str__(self):
         return self.department_name
 
 class Position(models.Model):
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     position_name = models.CharField(max_length=100)
+    class Meta:
+        verbose_name = "Designation"
+        verbose_name_plural = "Designations"
+
     def __str__(self):
         return self.position_name
 
@@ -38,11 +46,17 @@ class Employee(models.Model):
     
 
     def save(self, *args, **kwargs):
+        self.full_clean()
+
         super().save(*args, **kwargs)
 
         if not self.employee_code:
             self.employee_code = f"EMP{self.id:04d}"
-            super().save(update_fields=['employee_code'])
+            super().save(update_fields=["employee_code"])
+
+    class Meta:
+        verbose_name = "Employee"
+        verbose_name_plural = "Employees"
     
 
     def __str__(self):
@@ -71,6 +85,8 @@ class Payroll(models.Model):
 
 
     class Meta:
+        verbose_name = "Monthly Payroll"
+        verbose_name_plural = "Monthly Payroll"
         constraints = [
             models.UniqueConstraint(
                 fields=["employee", "payroll_month"],
@@ -86,15 +102,21 @@ class Payroll(models.Model):
                 "employee": "Employee is required."
             })
 
+        if self.employee.employee_type != "Permanent":
+            raise ValidationError({
+                "employee": "Monthly payroll can only be created for Permanent employees."
+            })
+
         if Payroll.objects.filter(
             employee=self.employee,
             payroll_month__year=self.payroll_month.year,
             payroll_month__month=self.payroll_month.month,
         ).exclude(pk=self.pk).exists():
-            raise ValidationError({
-                "employee": "Payroll already exists for this employee for this month."
-            })
 
+            raise ValidationError({
+                "employee":
+                "Payroll already exists for this employee for this month."
+            })
     @property
     def total_salary(self):
         return round(
@@ -135,7 +157,7 @@ class Payroll(models.Model):
 
     def save(self, *args, **kwargs):
         if self.employee:
-            self.basic_salary = self.employee.monthsalary
+            self.basic_salary = self.employee.monthsalary or 0
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -143,96 +165,259 @@ class Payroll(models.Model):
 
 
 class WeeklyPayroll(models.Model):
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    employee = models.ForeignKey(
+        Employee,
+        on_delete=models.CASCADE,
+        related_name="weekly_payrolls"
+    )
+
     week_start = models.DateField(default=date.today)
     week_end = models.DateField(default=date.today)
+
+    description = models.TextField(
+        blank=True,
+        null=True
+    )
+
     created_date = models.DateTimeField(auto_now_add=True)
+    updated_date = models.DateTimeField(auto_now=True,null=True,blank=True)
 
     class Meta:
         verbose_name = "Weekly Payroll"
-        verbose_name_plural = "Weekly Payrolls"
+        verbose_name_plural = "Weekly Payroll"
+        ordering = ["-week_start"]
+
         constraints = [
             models.UniqueConstraint(
-                fields=["employee", "week_start", "week_end"],
-                name="unique_employee_week_range",
+                fields=[
+                    "employee",
+                    "week_start",
+                    "week_end",
+                ],
+                name="unique_employee_weekly_payroll",
             )
         ]
 
     def clean(self):
+
         super().clean()
 
         if not self.employee_id:
-            raise ValidationError({"employee": "Employee is required."})
+            raise ValidationError({
+                "employee": "Employee is required for weekly payroll."
+            })
 
-        if self.week_start and self.week_end and self.week_end < self.week_start:
-            raise ValidationError({"week_end": "Week end must be greater than or equal to week start."})
+        if self.employee.employee_type != "Contract":
+            raise ValidationError({
+                "employee":
+                "Weekly payroll can only be created for Contract employees."
+            })
 
-        if self.employee_id and self.week_start and self.week_end:
-            duplicate = WeeklyPayroll.objects.filter(
-                employee=self.employee,
-                week_start=self.week_start,
-                week_end=self.week_end,
-            ).exclude(pk=self.pk)
-            if duplicate.exists():
-                raise ValidationError({"employee": "A weekly payroll already exists for this employee in the selected week."})
+        if not self.week_start or not self.week_end:
+            raise ValidationError({
+                "__all__":
+                "Week Start and Week End are required."
+            })
 
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        super().save(*args, **kwargs)
+        if self.week_end < self.week_start:
+            raise ValidationError({
+                "week_end":
+                "Week End cannot be before Week Start."
+            })
 
-    def sync_items(self, item_data):
-        self.items.all().delete()
-        for item in item_data:
-            label = (item.get("label") or "").strip()
-            amount = (item.get("amount") or "").strip()
-            if not label or not amount:
-                continue
-            WeeklyPayrollItem.objects.create(
-                weekly_payroll=self,
-                type=item.get("type", "Earning"),
-                label=label,
-                amount=amount,
-            )
+        duplicate_exists = WeeklyPayroll.objects.filter(
+            employee=self.employee,
+            week_start=self.week_start,
+            week_end=self.week_end,
+        ).exclude(pk=self.pk).exists()
+
+        if duplicate_exists:
+            raise ValidationError({
+                "__all__":
+                "A weekly payroll for this employee and week range already exists."
+            })
 
     @property
     def total_earnings(self):
-        return sum((item.amount for item in self.items.filter(type="Earning")), Decimal("0.00"))
+
+        return sum(
+            (
+                item.amount
+                for item in self.items.filter(type="Earning")
+            ),
+            Decimal("0.00")
+        )
 
     @property
     def total_deductions(self):
-        return sum((item.amount for item in self.items.filter(type="Deduction")), Decimal("0.00"))
+
+        return sum(
+            (
+                item.amount
+                for item in self.items.filter(type="Deduction")
+            ),
+            Decimal("0.00")
+        )
+
+    @property
+    def earnings(self):
+        return self.items.filter(type="Earning")
+
+    @property
+    def deductions(self):
+        return self.items.filter(type="Deduction")
 
     @property
     def net_salary(self):
+
         return self.total_earnings - self.total_deductions
 
     @property
     def week_display(self):
-        return f"{self.week_start.strftime('%d %b %Y')} – {self.week_end.strftime('%d %b %Y')}"
+
+        return (
+            f"{self.week_start.strftime('%d-%m-%Y')} "
+            f"to "
+            f"{self.week_end.strftime('%d-%m-%Y')}"
+        )
+
+    def sync_items(self, item_data):
+
+        self.items.all().delete()
+
+        for item in item_data:
+
+            label = (
+                item.get("label") or ""
+            ).strip()
+
+            if not label:
+                continue
+
+            WeeklyPayrollItem.objects.create(
+
+                weekly_payroll=self,
+
+                type=item.get(
+                    "type",
+                    "Earning"
+                ),
+
+                label=label,
+
+                hp=item.get(
+                    "hp",
+                    0
+                ),
+
+                quantity=item.get(
+                    "quantity",
+                    1
+                ),
+
+                amount=item.get(
+                    "amount",
+                    0
+                ),
+
+            )
 
     def __str__(self):
-        return f"{self.employee} - {self.week_display}"
+
+        return (
+            f"{self.employee.employee_code}"
+            f" - "
+            f"{self.week_display}"
+        )
 
 
 class WeeklyPayrollItem(models.Model):
-    TYPE_CHOICES = [
+
+    TYPE_CHOICES = (
         ("Earning", "Earning"),
         ("Deduction", "Deduction"),
-    ]
+    )
 
     weekly_payroll = models.ForeignKey(
         WeeklyPayroll,
         on_delete=models.CASCADE,
         related_name="items",
     )
-    type = models.CharField(max_length=10, choices=TYPE_CHOICES, default="Earning")
-    label = models.CharField(max_length=100)
-    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    type = models.CharField(
+        max_length=20,
+        choices=TYPE_CHOICES,
+        default="Earning",
+    )
+
+    label = models.CharField(
+        max_length=100
+    )
+
+    hp = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        blank=True,
+    )
+
+    quantity = models.PositiveIntegerField(
+        default=1,
+        blank=True,
+    )
+
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
 
     class Meta:
-        verbose_name = "Weekly Payroll Item"
-        verbose_name_plural = "Weekly Payroll Items"
+        ordering = [
+            "id"
+        ]
+
+    def clean(self):
+
+        super().clean()
+
+        if self.type == "Earning":
+
+            if self.hp < 0:
+                raise ValidationError(
+                    {
+                        "hp":
+                        "HP cannot be negative."
+                    }
+                )
+
+            if self.quantity < 1:
+                raise ValidationError(
+                    {
+                        "quantity":
+                        "Quantity must be at least 1."
+                    }
+                )
+
+    def save(self, *args, **kwargs):
+
+        if self.type == "Earning":
+
+            self.amount = (
+                Decimal(self.hp)
+                *
+                Decimal(self.quantity)
+            )
+
+        super().save(
+            *args,
+            **kwargs
+        )
 
     def __str__(self):
-        return f"{self.type} - {self.label}"
 
+        return (
+            f"{self.type}"
+            f" - "
+            f"{self.label}"
+        )

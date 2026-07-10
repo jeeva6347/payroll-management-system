@@ -6,19 +6,26 @@ from django.http import HttpResponse
 import csv
 import json
 from django.urls import reverse, path
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.utils import timezone
 from django.db.models.functions import ExtractMonth, ExtractYear
 from calendar import month_abbr
 from django.shortcuts import render, get_object_or_404
 from django.template.response import TemplateResponse
 
-# Register your models 
+# Register your models
+
+
+
 
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
+    class Media:
+        css = {
+            'all': ('css/admin-forms.css',)
+        }
+
     list_display = (
-        
         'employee_code',
         'Firstname',
         'employee_type',
@@ -28,16 +35,25 @@ class EmployeeAdmin(admin.ModelAdmin):
         'monthsalary',
         'salary_history_button',
     )
+    search_fields = (
+    "employee_code",
+    "Firstname",
+    "Lastname",
+    "phone",
+    "email",
+)
+   
 
     list_per_page = 10
+    ordering = ("employee_code",)
 
-    actions = ['export_csv']   
+    actions = ['export_csv']
 
     def export_csv(self, request, queryset):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename=employees.csv'
 
-        writer = csv.writer(response)   
+        writer = csv.writer(response)
 
         writer.writerow([
             'Employee Code',
@@ -53,7 +69,7 @@ class EmployeeAdmin(admin.ModelAdmin):
             writer.writerow([
                 emp.employee_code,
                 emp.Firstname,
-                emp.phone,     
+                emp.phone,
                 emp.email,
                 emp.department,
                 emp.position,
@@ -65,12 +81,16 @@ class EmployeeAdmin(admin.ModelAdmin):
     export_csv.short_description = "Export Selected Employees"
 
     def salary_history_button(self, obj):
-        return format_html(
-            '<a class="btn btn-primary btn-sm" href="salary-history/{}/">Report</a>',
-            obj.id,
-        )
+       
+        if getattr(obj, 'employee_type', None) == 'Contract':
+            url = f"weekly-history/{obj.id}/"
+        else:
+            url = f"salary-history/{obj.id}/"
 
-    salary_history_button.short_description = "Final Report"
+        return format_html(
+            '<a class="btn btn-primary btn-sm" href="{}">Report</a>',
+            url,
+        )
 
     def get_urls(self):
         urls = super().get_urls()
@@ -79,6 +99,11 @@ class EmployeeAdmin(admin.ModelAdmin):
                 "salary-history/<int:employee_id>/",
                 self.admin_site.admin_view(self.salary_history_view),
                 name="employee_salary_history",
+            ),
+            path(
+                "weekly-history/<int:employee_id>/",
+                self.admin_site.admin_view(self.salary_weekly_history_view),
+                name="employee_weekly_history",
             ),
         ]
         return custom_urls + urls
@@ -94,32 +119,67 @@ class EmployeeAdmin(admin.ModelAdmin):
         total_net = sum(p.net_salary for p in payrolls)
 
         context = {
-        **self.admin_site.each_context(request),
-        'employee': employee,
-        'payrolls': payrolls,
-        'total_basic': total_basic,
-        'total_salary': total_salary,
-        'total_deduction': total_deduction,
-        'total_net': total_net,
-    }
+            **self.admin_site.each_context(request),
+            'employee': employee,
+            'payrolls': payrolls,
+            'total_basic': total_basic,
+            'total_salary': total_salary,
+            'total_deduction': total_deduction,
+            'total_net': total_net,
+        }
 
         return render(request, "Payrollmang/salary_history.html", context)
+
+    def salary_weekly_history_view(self, request, employee_id):
+        employee = get_object_or_404(Employee, id=employee_id)
+
+        weekly_payrolls = WeeklyPayroll.objects.filter(employee=employee).order_by("-week_start")
+
+        total_earnings = sum((wp.total_earnings or 0) for wp in weekly_payrolls)
+        total_deductions = sum((wp.total_deductions or 0) for wp in weekly_payrolls)
+        total_net = sum((wp.net_salary or 0) for wp in weekly_payrolls)
+
+        context = {
+            **self.admin_site.each_context(request),
+            'employee': employee,
+            'weekly_payrolls': weekly_payrolls,
+            'total_earnings': total_earnings,
+            'total_deductions': total_deductions,
+            'total_net': total_net,
+        }
+
+        return render(request, "Payrollmang/weekly_history.html", context)
 
 
 @admin.register(Department)
 class DepartmentAdmin(admin.ModelAdmin):
     list_display = ('department_name',)
     list_per_page = 10
-    
+
 
 @admin.register(Position)
 class PositionAdmin(admin.ModelAdmin):
     list_display = ('department', 'position_name')
     list_per_page = 10
+
+
+class PayrollAdminForm(forms.ModelForm):
+    class Meta:
+        model = Payroll
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
     
+        if "employee" in self.fields:
+            self.fields["employee"].queryset = Employee.objects.filter(
+                employee_type="Permanent"
+            ).order_by("Firstname")
+
 
 @admin.register(Payroll)
 class PayrollAdmin(admin.ModelAdmin):
+    form = PayrollAdminForm
     change_form_template = "Payrollmang/payroll/change_form.html"
 
     class Media:
@@ -129,8 +189,6 @@ class PayrollAdmin(admin.ModelAdmin):
         js = (
             "js/payroll.js",
             "js/salary.js",
-            "js/weeklypayroll/weekly_payroll.js",
-            
         )
 
     list_display = (
@@ -142,10 +200,15 @@ class PayrollAdmin(admin.ModelAdmin):
         'total_deduction_display',
         'net_salary_display',
         'salary_print_button',
-        
     )
+    search_fields = (
+    "employee__employee_code",
+    "employee__Firstname",
+)
+   
     list_per_page = 10
-    
+    ordering = ("-payroll_month",)
+
     def employee_name(self, obj):
         return obj.employee.Firstname
 
@@ -155,7 +218,6 @@ class PayrollAdmin(admin.ModelAdmin):
         return obj.employee.employee_code
 
     employee_code.short_description = "Employee ID"
-    
 
     def salary_print_button(self, obj):
         if not obj or not obj.pk:
@@ -173,25 +235,11 @@ class PayrollAdmin(admin.ModelAdmin):
             f'padding:5px 10px;'
             f'text-decoration:none;'
             f'border-radius:3px;" '
-            f'href="{url}" target="_blank">🖨️ Print</a>'
+            f'href="{url}" target="_blank"><i class="fas fa-print"></i> Print</a>'
         )
-    
+
     salary_print_button.short_description = "Salary Slip"
 
-    def final_report_button(self, obj):
-        url=reverse(
-            'employee_final_report',
-            kwargs={'employee_id':obj.employee.id}
-
-        )
-        return format_html(
-            '<a class="button" '
-        'style="background:#28a745;color:white;padding:5px 10px;'
-        'border-radius:3px;text-decoration:none;" '
-        'href="{}" target="_blank">📊 Report</a>',
-        url
-        )
-    final_report_button.short_description="Final Report"
     def basic_salary_display(self, obj):
         return f"₹ {obj.basic_salary:.2f}"
 
@@ -220,7 +268,9 @@ class WeeklyPayrollAdminForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["employee"].queryset = Employee.objects.filter(employee_type="Contract").order_by("Firstname")
+        self.fields["employee"].queryset = Employee.objects.filter(
+            employee_type="Contract"
+        ).order_by("Firstname")
 
 
 @admin.register(WeeklyPayroll)
@@ -238,7 +288,14 @@ class WeeklyPayrollAdmin(admin.ModelAdmin):
         "net_salary_display",
         "print_payslip",
     )
+    search_fields = (
+    "employee__employee_code",
+    "employee__Firstname",
+    
+)
+   
     list_per_page = 10
+    ordering = ("-week_start",)
 
     class Media:
         js = (
@@ -275,7 +332,9 @@ class WeeklyPayrollAdmin(admin.ModelAdmin):
             return "N/A"
         url = reverse("weekly_salary_slip", kwargs={"pk": obj.pk})
         return mark_safe(
-            f'<a class="button" style="background-color:#417690;color:white;padding:5px 10px;text-decoration:none;border-radius:3px;" href="{url}" target="_blank">🖨️ Print</a>'
+            f'<a class="button" style="background-color:#417690;color:white;'
+            f'padding:5px 10px;text-decoration:none;border-radius:3px;" '
+            f'href="{url}" target="_blank"><i class="fas fa-print"></i> Print</a>'
         )
 
     print_payslip.short_description = "Print Payslip"
@@ -288,11 +347,19 @@ class WeeklyPayrollAdmin(admin.ModelAdmin):
 
         earning_labels = request.POST.getlist("earning_label[]")
         earning_amounts = request.POST.getlist("earning_amount[]")
-
-        for label, amount in zip(earning_labels, earning_amounts):
+        earning_hp = request.POST.getlist("earning_hp[]")
+        earning_quantity = request.POST.getlist("earning_quantity[]")
+        for label, hp, quantity, amount in zip(
+            earning_labels,
+            earning_hp,
+            earning_quantity,
+            earning_amounts
+        ):
             item_data.append({
                 "type": "Earning",
                 "label": label,
+                "hp": hp,
+                "quantity": quantity,
                 "amount": amount,
             })
 
@@ -315,15 +382,16 @@ class WeeklyPayrollAdmin(admin.ModelAdmin):
         rows = []
 
         if obj:
-
             for item in obj.items.all():
-
                 rows.append({
                     "type": item.type,
                     "label": item.label,
+                    "hp": float(item.hp),
+                    "quantity": int(item.quantity),
                     "amount": float(item.amount),
                 })
 
+      
         context["initial_rows"] = json.dumps(rows)
 
         return super().render_change_form(
@@ -332,13 +400,14 @@ class WeeklyPayrollAdmin(admin.ModelAdmin):
             *args,
             **kwargs
         )
+
+
 def custom_index(request, extra_context=None):
 
     today = timezone.now()
 
     context = admin.site.each_context(request)
 
-   
     employee_count = Employee.objects.count()
     department_count = Department.objects.count()
     position_count = Position.objects.count()
@@ -357,7 +426,6 @@ def custom_index(request, extra_context=None):
         ).aggregate(total=Sum("basic_salary"))["total"] or 0
     )
 
-  
     monthly_chart = (
         Payroll.objects.filter(
             payroll_month__year=today.year
@@ -368,7 +436,25 @@ def custom_index(request, extra_context=None):
         .order_by("month")
     )
 
-   
+    monthly_weekly_chart = (
+        WeeklyPayroll.objects.filter(
+            week_start__year=today.year
+        )
+        .annotate(month=ExtractMonth("week_start"))
+        .values("month")
+        .annotate(
+            total_earnings=Sum(
+                "items__amount",
+                filter=Q(items__type="Earning")
+            ),
+            total_deductions=Sum(
+                "items__amount",
+                filter=Q(items__type="Deduction")
+            )
+        )
+        .order_by("month")
+    )
+
     yearly_chart = (
         Payroll.objects
         .annotate(year=ExtractYear("payroll_month"))
@@ -376,40 +462,63 @@ def custom_index(request, extra_context=None):
         .annotate(total=Sum("basic_salary"))
         .order_by("year")
     )
+
     monthly_labels = []
     monthly_values = []
+    monthly_weekly_values = []
     yearly_labels = []
     yearly_values = []
 
+    monthly_totals = {}
+
     for item in monthly_chart:
-        monthly_labels.append(month_abbr[item["month"]])
-        monthly_values.append(float(item["total"]))
+        monthly_totals[item["month"]] = {
+            "payroll": float(item["total"]),
+            "weekly": 0.0,
+        }
+
+    for item in monthly_weekly_chart:
+        payroll_month = item["month"]
+        earnings = item["total_earnings"] or 0
+        deductions = item["total_deductions"] or 0
+        weekly_total = float(earnings - deductions)
+
+        if payroll_month not in monthly_totals:
+            monthly_totals[payroll_month] = {
+                "payroll": 0.0,
+                "weekly": weekly_total,
+            }
+        else:
+            monthly_totals[payroll_month]["weekly"] = weekly_total
+
+    for month in sorted(monthly_totals):
+        monthly_labels.append(month_abbr[month])
+        monthly_values.append(monthly_totals[month]["payroll"])
+        monthly_weekly_values.append(monthly_totals[month]["weekly"])
+
+    weekly_salary = sum(monthly_totals[month]["weekly"] for month in monthly_totals)
 
     for item in yearly_chart:
         yearly_labels.append(str(item["year"]))
         yearly_values.append(float(item["total"]))
-
-
 
     recent_payrolls = (
         Payroll.objects.select_related("employee")
         .order_by("-payroll_month")[:10]
     )
 
-    
-
     top_salary_employees = (
         Employee.objects.order_by("-monthsalary")[:5]
     )
-
-    
 
     latest_employees = (
         Employee.objects.order_by("-id")[:5]
     )
 
-    context.update({
+    if extra_context:
+        context.update(extra_context)
 
+    context.update({
         "employee_count": employee_count,
         "department_count": department_count,
         "position_count": position_count,
@@ -419,13 +528,14 @@ def custom_index(request, extra_context=None):
         "yearly_salary": yearly_salary,
         "monthly_labels": json.dumps(monthly_labels),
         "monthly_values": json.dumps(monthly_values),
+        "monthly_weekly_values": json.dumps(monthly_weekly_values),
+        "weekly_salary": weekly_salary,
         "yearly_labels": json.dumps(yearly_labels),
         "yearly_values": json.dumps(yearly_values),
-        
+
         "recent_payrolls": recent_payrolls,
         "top_salary_employees": top_salary_employees,
         "latest_employees": latest_employees,
-
     })
 
     return TemplateResponse(
@@ -433,7 +543,6 @@ def custom_index(request, extra_context=None):
         "Payrollmang/dashboard.html",
         context,
     )
-    
 
 
 admin.site.index = custom_index

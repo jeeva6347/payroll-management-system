@@ -8,7 +8,7 @@
         <a href="{% url 'employee_salary_history_print' employee.id %}"
            target="_blank"
            class="btn btn-success btn-sm">
-            Generate Report
+         <i class="fas fa-print"></i> Generate Report
         </a>
 
         <a href="../.." class="btn btn-secondary btn-sm">
@@ -67,6 +67,7 @@
                             <th>Total Salary</th>
                             <th>Total Deduction</th>
                             <th>Net Salary</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -77,6 +78,10 @@
                             <td>{{ payroll.total_salary|indian_currency }}</td>
                             <td>{{ payroll.total_deduction|indian_currency }}</td>
                             <td class="text-success fw-bold">{{ payroll.net_salary|indian_currency }}</td>
+                            <td><a href="{% url 'salary_slip' payroll.id %}"target="_blank"class="btn btn-sm btn-primary">
+                                    <i class="fas fa-print"></i> Print
+                                </a>
+                            </td>
                         </tr>
                         {% empty %}
                         <tr>

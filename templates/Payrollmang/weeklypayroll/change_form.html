@@ -47,6 +47,18 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
                     </div>
                 </div>
 
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="row align-items-center">
+                            <label class="col-2 col-form-label fw-bold">Description</label>
+                            <div class="col-sm-7 px-sm-5">
+                                {{ adminform.form.description }}
+                                {{ adminform.form.description.errors }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {% if original and original.week_start and original.week_end %}
                 <div class="alert alert-info py-2 mb-4">
                     <strong>Week:</strong> {{ original.week_display }}

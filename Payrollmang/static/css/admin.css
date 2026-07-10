@@ -1,8 +1,19 @@
-div.help,
-p.help,
-span.help,
-div.helptext,
-p.helptext,
-span.helptext {
-    display: none !important;
+/* Search filters */
+#change-list-filters .select2-container{
+    width:180px !important;
+    min-width:180px !important;
+}
+
+/* Search input */
+#change-list-filters #searchbar{
+    width:280px !important;
+    min-width:280px !important;
+}
+
+/* Search form */
+#change-list-filters form{
+    display:flex !important;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
 }

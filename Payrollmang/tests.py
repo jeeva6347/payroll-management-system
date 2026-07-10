@@ -25,6 +25,7 @@ class WeeklyPayrollAdminTests(TestCase):
             department=department,
             position=position,
             monthsalary=Decimal("40000.00"),
+            employee_type="Contract",
         )
         permanent_employee = Employee.objects.create(
             Firstname="Bob",
@@ -79,6 +80,28 @@ class WeeklyPayrollModelTests(TestCase):
 
     def test_weekly_payroll_rejects_invalid_week_range(self):
         weekly_payroll = WeeklyPayroll(employee=self.employee, week_start=date(2026, 7, 13), week_end=date(2026, 7, 6))
+
+        with self.assertRaises(ValidationError):
+            weekly_payroll.clean()
+
+    def test_weekly_payroll_rejects_non_contract_employee(self):
+        permanent_employee = Employee.objects.create(
+            Firstname="Jane",
+            Lastname="Doe",
+            phone="9876543213",
+            email="jane@example.com",
+            address="Main Street",
+            department=self.employee.department,
+            position=self.employee.position,
+            monthsalary=Decimal("55000.00"),
+            employee_type="Permanent",
+        )
+
+        weekly_payroll = WeeklyPayroll(
+            employee=permanent_employee,
+            week_start=date(2026, 7, 6),
+            week_end=date(2026, 7, 12),
+        )
 
         with self.assertRaises(ValidationError):
             weekly_payroll.clean()

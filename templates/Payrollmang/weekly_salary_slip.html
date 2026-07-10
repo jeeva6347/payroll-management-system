@@ -14,91 +14,111 @@
             font-family: Arial, sans-serif;
             background: #fff;
             padding: 20px;
+            color: #0f172a;
         }
 
         .wrapper {
-            width: 700px;
+            max-width: 760px;
             margin: auto;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            border: 1px solid #000;
+            border: 1px solid #d1d5db;
+            margin-bottom: 18px;
         }
 
-        td, th {
-            border: 1px solid #000;
-            padding: 6px 8px;
+        th, td {
+            border: 1px solid #d1d5db;
+            padding: 10px 12px;
             font-size: 13px;
-            color: #000;
-            vertical-align: middle;
+            vertical-align: top;
         }
 
-        .company-title {
+        .header-title {
             font-size: 22px;
             font-weight: bold;
             text-align: center;
-            border-bottom: none !important;
-            padding: 8px 0 2px;
+            padding: 12px 0;
         }
 
-        .company-addr {
-            font-size: 11px;
+        .header-sub {
             text-align: center;
-            border-top: none !important;
-            padding: 0 0 8px;
+            font-size: 12px;
+            color: #475569;
+            padding: 8px 0;
         }
 
         .slip-title {
             text-align: center;
             font-size: 15px;
             font-weight: bold;
+            background: #0f172a;
+            color: #fff;
+            padding: 10px 0;
         }
 
-        .section-head {
-            text-align: center;
+        .label-cell {
+            width: 170px;
             font-weight: bold;
+            background: #f8fafc;
         }
 
-        .col-head {
+        .section-header {
+            background: #f8fafc;
             font-weight: bold;
-            text-align: center;
+            color: #334e68;
+            text-align: left;
         }
 
         .amt {
             text-align: right;
         }
 
-        .bold {
+        .summary-table td {
+            border: none;
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+
+        .summary-label {
+            font-weight: bold;
+            color: #475569;
+        }
+
+        .summary-value {
+            text-align: right;
             font-weight: bold;
         }
 
-        .blank-row td {
-            height: 35px;
+        .signature {
+            margin-top: 24px;
+            font-size: 13px;
+            display: flex;
+            justify-content: flex-end;
         }
 
-        .net-row td {
-            font-weight: bold;
+        .signature > div {
+            text-align: right;
+            max-width: 220px;
+        }
+
+        .signature strong {
+            display: inline-block;
+            margin-top: 40px;
         }
 
         .print-btn {
             display: block;
-            margin: 20px auto;
-            padding: 8px 25px;
-            background: #0d6efd;
+            margin: 20px auto 0;
+            padding: 10px 18px;
+            background: #0f172a;
             color: #fff;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
-        }
-
-        .signature {
-            width: 700px;
-            margin: 80px auto 0;
-            text-align: center;
-            padding-left: 500px;
-            font-size: 13px;
+            font-weight: bold;
         }
 
         @media print {
@@ -109,188 +129,117 @@
             body {
                 padding: 0;
             }
-
-            .wrapper {
-                width: 95%;
-                max-width: 1000px;
-                margin-top: 100px;
-            }
-
-            td, th {
-                padding: 12px 9px;
-            }
-
-            .signature {
-                width: 700px;
-                margin: 80px auto 0;
-                text-align: center;
-                padding-left: 500px;
-                font-size: 13px;
-            }
         }
     </style>
 </head>
-
 <body>
-
     <div class="wrapper">
         <table>
             <tr>
-                <td colspan="4" class="company-title">
-                    GLOBAL ELECTRICAL TECH
-                </td>
+                <td colspan="4" class="header-title">GLOBAL ELECTRICAL TECH</td>
             </tr>
-
             <tr>
-                <td colspan="4" class="company-addr">
-                    (No.69, Priyanka Nagar, Pattunoolchatram,
-                    Sriperumbudur, Kanchipuram Dt, TN.)
-                </td>
+                <td colspan="4" class="header-sub">No.69, Priyanka Nagar, Pattunoolchatram, Sriperumbudur, Kanchipuram Dt, TN.</td>
             </tr>
-
             <tr>
-                <td colspan="4" class="slip-title">
-                    WEEKLY PAY SLIP
-                </td>
-            </tr>
-
-            <tr>
-                <td colspan="2">
-                    <b>Employee Name :</b>
-                    {{ weekly_payroll.employee.Firstname|upper }}
-                    {{ weekly_payroll.employee.Lastname|upper }}
-                </td>
-
-                <td colspan="2">
-                    <b>Emp. Code :</b>
-                    {{ weekly_payroll.employee.employee_code }}
-                </td>
-            </tr>
-
-            <tr>
-                <td colspan="2">
-                    <b>Designation :</b>
-                    {{ weekly_payroll.employee.position }}
-                </td>
-
-                <td colspan="2">
-                    <b>Phone :</b>
-                    {{ weekly_payroll.employee.phone }}
-                </td>
-            </tr>
-
-            <tr>
-                <td colspan="2">
-                    <b>Department :</b>
-                    {{ weekly_payroll.employee.department }}
-                </td>
-
-                <td colspan="2">
-                    <b>Date Of Join :</b>
-                    {{ weekly_payroll.employee.date_of_join|date:"d-m-Y" }}
-                </td>
-            </tr>
-
-            <tr>
-                <td colspan="2">
-                    <b>Week Start :</b>
-                    {{ weekly_payroll.week_start|date:"d-m-Y" }}
-                </td>
-
-                <td colspan="2">
-                    <b>Week End :</b>
-                    {{ weekly_payroll.week_end|date:"d-m-Y" }}
-                </td>
-            </tr>
-
-            <tr>
-                <td colspan="2" class="section-head">
-                    Earnings
-                </td>
-
-                <td colspan="2" class="section-head">
-                    Deductions
-                </td>
-            </tr>
-
-            <tr>
-                <td class="col-head">Salary Head</td>
-                <td class="col-head">Amount</td>
-
-                <td class="col-head">Salary Head</td>
-                <td class="col-head">Amount</td>
-            </tr>
-
-            {% regroup weekly_payroll.items.all by type as grouped_items %}
-            {% for group in grouped_items %}
-                {% if group.grouper == "Earning" %}
-                    {% for item in group.list %}
-                        <tr>
-                            <td>{{ item.label }}</td>
-                            <td class="amt">₹ {{ item.amount|floatformat:2 }}</td>
-                            {% if forloop.counter == 1 %}
-                                {% with deductions=weekly_payroll.items.filter type="Deduction" %}
-                                    {% for deduction in deductions %}
-                                        {% if forloop.counter == forloop.parentloop.counter %}
-                                            <td>{{ deduction.label }}</td>
-                                            <td class="amt">₹ {{ deduction.amount|floatformat:2 }}</td>
-                                        {% endif %}
-                                    {% endfor %}
-                                {% endwith %}
-                            {% endif %}
-                        </tr>
-                    {% endfor %}
-                {% endif %}
-            {% endfor %}
-
-            <tr class="blank-row">
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-
-            <tr>
-                <td class="bold">
-                    TOTAL EARNINGS
-                </td>
-
-                <td class="amt bold">
-                    ₹ {{ weekly_payroll.total_earnings|floatformat:2 }}
-                </td>
-
-                <td class="bold">
-                    TOTAL DEDUCTIONS
-                </td>
-
-                <td class="amt bold">
-                    ₹ {{ weekly_payroll.total_deductions|floatformat:2 }}
-                </td>
-            </tr>
-
-            <tr class="net-row">
-                <td>Net Salary</td>
-
-                <td class="amt">
-                    ₹ {{ weekly_payroll.net_salary|floatformat:2 }}
-                </td>
-
-                <td></td>
-                <td></td>
+                <td colspan="4" class="slip-title">WEEKLY PAY SLIP</td>
             </tr>
         </table>
+
+        <table>
+            <tr>
+                <td class="label-cell">Employee Name</td>
+                <td colspan="3">{{ weekly_payroll.employee.Firstname|upper }} {{ weekly_payroll.employee.Lastname|upper }}</td>
+            </tr>
+            <tr>
+                <td class="label-cell">Employee Code</td>
+                <td>{{ weekly_payroll.employee.employee_code }}</td>
+                <td class="label-cell">Designation</td>
+                <td>{{ weekly_payroll.employee.position }}</td>
+            </tr>
+            <tr>
+                <td class="label-cell">Department</td>
+                <td>{{ weekly_payroll.employee.department }}</td>
+                <td class="label-cell">Phone</td>
+                <td>{{ weekly_payroll.employee.phone }}</td>
+            </tr>
+            <tr>
+                <td class="label-cell">Week Start</td>
+                <td>{{ weekly_payroll.week_start|date:"d-m-Y" }}</td>
+                <td class="label-cell">Week End</td>
+                <td>{{ weekly_payroll.week_end|date:"d-m-Y" }}</td>
+            </tr>
+            <tr>
+                <td class="label-cell">Date of Join</td>
+                <td>{{ weekly_payroll.employee.date_of_join|date:"d-m-Y" }}</td>
+                <td class="label-cell">Description</td>
+                <td>{{ weekly_payroll.description|default:"-" }}</td>
+            </tr>
+        </table>
+
+        <table>
+            <tr>
+                <td colspan="2" class="section-header">Earnings</td>
+            </tr>
+            <tr>
+                <th>Salary Head</th>
+                <th class="amt">Amount</th>
+            </tr>
+            {% for earning in weekly_payroll.earnings %}
+            <tr>
+                <td>{{ earning.label }}</td>
+                <td class="amt">₹ {{ earning.amount|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="2" class="amt">No earnings recorded</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <table>
+            <tr>
+                <td colspan="2" class="section-header">Deductions</td>
+            </tr>
+            <tr>
+                <th>Salary Head</th>
+                <th class="amt">Amount</th>
+            </tr>
+            {% for deduction in weekly_payroll.deductions %}
+            <tr>
+                <td>{{ deduction.label }}</td>
+                <td class="amt">₹ {{ deduction.amount|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="2" class="amt">No deductions recorded</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <table class="summary-table">
+            <tr>
+                <td class="summary-label">Total Earnings</td>
+                <td class="summary-value amt">₹ {{ weekly_payroll.total_earnings|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td class="summary-label">Total Deductions</td>
+                <td class="summary-value amt">₹ {{ weekly_payroll.total_deductions|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td class="summary-label">Net Salary</td>
+                <td class="summary-value amt">₹ {{ weekly_payroll.net_salary|floatformat:2 }}</td>
+            </tr>
+        </table>
+
+        <div class="signature">
+            <div>
+                Authorized by
+                <strong>GLOBAL ELECTRICAL TECH</strong>
+            </div>
+        </div>
+
+        <button class="print-btn" onclick="window.print()">Print Slip</button>
     </div>
-
-    <div class="signature">
-        Authorized By
-        <br><br><br><br>
-        <strong>GLOBAL ELECTRICAL TECH</strong>
-    </div>
-
-    <button class="print-btn" onclick="window.print()">
-        🖨️ Print
-    </button>
-
 </body>
-
 </html>
