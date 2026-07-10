@@ -162,9 +162,9 @@ STATICFILES_STORAGE = (
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 JAZZMIN_SETTINGS = {
-    "site_title": "Payroll Management System",
-    "site_header": "Payroll Management System",
-    "site_brand": "Payroll Management System",
+    "site_title": "Payroll Management",
+    "site_header": "Payroll Management",
+    "site_brand": "Payroll Management",
     "welcome_sign": "Welcome to Payroll Management System",
     "copyright": "© 2026 Payroll Management System",
 }
