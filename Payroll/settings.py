@@ -166,5 +166,5 @@ JAZZMIN_SETTINGS = {
     "site_header": "Payroll Management",
     "site_brand": "Payroll Management",
     "welcome_sign": "Welcome to Payroll Management System",
-    "copyright": "© 2026 Payroll Management System",
+    
 }
