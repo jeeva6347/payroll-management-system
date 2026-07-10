@@ -161,3 +161,9 @@ STATICFILES_STORAGE = (
 # =========================
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+JAZZMIN_SETTINGS = {
+    "site_title": "Payroll",
+    "site_header": "Payroll",
+    "site_brand": "Payroll",
+    "welcome_sign": "Welcome to Payroll",
+}
