@@ -48,14 +48,6 @@ A full-featured **Payroll Management System** built with **Django** and **Postgr
 <img width="1339" height="633" alt="Screenshot 2026-07-11 155349" src="https://github.com/user-attachments/assets/55905522-7bd8-4655-b0bf-067da46ac0ff" />
 <img width="1347" height="628" alt="Screenshot 2026-07-11 155519" src="https://github.com/user-attachments/assets/c2c04ef3-4b8e-464c-9cf5-23316fdd8b85" />
 
-- Login Page
-- Dashboard
-- Employee Management
-- Payroll Form
-- Weekly Payroll
-- Payslip
-- Reports
-
 ---
 
 ## 📂 Project Structure
